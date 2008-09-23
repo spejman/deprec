@@ -121,14 +121,21 @@ module Std
     begin
       tempuser = user
       set :user, "root"
-      actor.sessions.delete_if { true }
+      close_sessions
       yield tempuser
     ensure
       set :user, tempuser if tempuser
-      actor.sessions.delete_if { true }
+      close_sessions
     end
   end
 
+  #Closes the active connections in order to do things
+  #like change actual user.
+  def close_sessions
+    sessions.each {|k,v| v.close }
+    sessions.delete_if { true }
+  end
+  
   #Returns a random string of alphanumeric characters of size +size+
   #Useful for passwords, usernames and the like.
   def random_string(size=10)
